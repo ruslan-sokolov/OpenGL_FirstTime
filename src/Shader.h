@@ -7,7 +7,7 @@ enum class ShaderType
 	NONE = -1, VERTEX = 0, FRAGMENT = 1
 };
 
-struct ShaderProgamSource
+struct ShaderProgramSource
 {
 	std::string VertexSource;
 	std::string FragmentSource;
@@ -32,14 +32,10 @@ public:
 	void SetUniform4f(const std::string& name, float f0, float f1, float f2, float f3);
 
 private:
-	unsigned int GetUniformLocation(const std::string& name);
+	int GetUniformLocation(const std::string& name);
 
-	bool CompileShader();
-
-	ShaderProgamSource ParseShader(const std::string& filepath);
-
+	ShaderProgramSource ParseShader(const std::string& filepath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);
-
 	unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
 
 };

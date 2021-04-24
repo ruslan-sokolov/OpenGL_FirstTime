@@ -1,15 +1,26 @@
 #include "Shader.h"
 
+#include "GL/glew.h"
+#include "Renderer.h"
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+
 Shader::Shader(const std::string& filepath)
+	: m_FilePath(filepath), m_RendererID(0)
 {
-	CompileShader();
+	ShaderProgramSource source = ParseShader(filepath);
+	m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
 }
 
 Shader::~Shader()
 {
+	GLCall(glDeleteProgram(m_RendererID));
 }
 
-ShaderProgamSource ParseShader(const std::string& filepath)
+ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 {
 	std::ifstream stream(filepath);
 
@@ -62,7 +73,7 @@ unsigned int CompileShader(unsigned int type, const std::string& source)
 	return id;
 }
 
-unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	GLCall(unsigned int program = glCreateProgram());
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
@@ -81,17 +92,23 @@ unsigned int CreateShader(const std::string& vertexShader, const std::string& fr
 
 void Shader::Bind() const
 {
+	GLCall(glUseProgram(m_RendererID));
 }
 
 void Shader::Unbind() const
 {
+	GLCall(glUseProgram(0));
 }
 
-void Shader::SetUniform4f(const std::string& name, float f0, float f1, float f2, float f3)
+void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
+	int location = glGetUniformLocation(m_RendererID, name.c_str());
+	GLCall(glUniform4f(location, v0, v1, v2, v3));
 }
 
-unsigned int Shader::GetUniformLocation(const std::string& name)
+int Shader::GetUniformLocation(const std::string& name)
 {
-	return 0;
+	// ToDo: Cache LOcation
+	GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
+	return location;
 }

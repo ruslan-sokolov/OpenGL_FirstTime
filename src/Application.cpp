@@ -9,7 +9,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-
+#include "Shader.h"
 
 int main(void)
 {
@@ -34,6 +34,7 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    // fps limit to monitor refresh rate
     glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK)
@@ -65,26 +66,15 @@ int main(void)
         // declare index buffer
         IndexBuffer ib(indices, 6);
 
-        // parse shader code
-        ShaderProgamSource source = ParseShader("res/shaders/Basic.shader");
-        std::cout << "VERTEX" << std::endl;
-        std::cout << source.VertexSource << std::endl;
-        std::cout << "FRAGMENT" << std::endl;
-        std::cout << source.FragmentSource << std::endl;
-
         // create and run shader program on gpu
-        unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-        GLCall(glUseProgram(shader));
+        Shader shader("res/shaders/Basic.shader");
+        shader.Bind();
+        shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
-        // set color using uniform
-        GLCall(int location = glGetUniformLocation(shader, "u_Color"));
-        ASSERT(location != -1);
-        GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f));
-
-        va.Unbind();  // clear vertex array buffer
-        GLCall(glUseProgram(0));  // clear program
-        GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));  // clear vertex buffer
-        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));  // clear index buffer
+        va.Unbind();  // clear vertex array buffer 
+        shader.Unbind(); // clear program shader
+        vb.Unbind();  // clear vertex buffer
+        ib.Unbind();  // clear index buffer
 
         float r = 0.0f;
         float increment = 0.05f;
@@ -95,20 +85,23 @@ int main(void)
             /* Render here */
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-            GLCall(glUseProgram(shader));
-            GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+            shader.Bind();
+            shader.SetUniform4f("u_Color", 1.0f, 0.3f, 0.5f, 1.0f);
 
             va.Bind();
             ib.Bind();
 
+            // draw triangles
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL));
 
+            // little focus to change color
             if (r > 1.0f)
                 increment = -0.05f;
             else if (r < 0.0f)
                 increment = 0.05f;
 
             r += increment;
+            //
 
             /* Swap front and back buffers */
             GLCall(glfwSwapBuffers(window));
@@ -116,8 +109,6 @@ int main(void)
             /* Poll for and process events */
             GLCall(glfwPollEvents());
         }
-
-        GLCall(glDeleteProgram(shader));
     }
 
     glfwTerminate();
