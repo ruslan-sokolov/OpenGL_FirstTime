@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 enum class ShaderType
 {
@@ -20,6 +21,7 @@ private:
 	unsigned int m_RendererID;
 	
 	// caching for uniforms
+	std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
 	Shader(const std::string& filepath);
@@ -29,7 +31,9 @@ public:
 	void Unbind() const;
 
 	// Set uniforms
-	void SetUniform4f(const std::string& name, float f0, float f1, float f2, float f3);
+	void SetUniform1i(const std::string& name, int value);
+	void SetUniform1f(const std::string& name, float value);
+	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 
 private:
 	int GetUniformLocation(const std::string& name);
