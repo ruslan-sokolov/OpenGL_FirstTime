@@ -10,6 +10,8 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "Shader.h"
+#include "Renderer.h"
+
 
 int main(void)
 {
@@ -76,6 +78,8 @@ int main(void)
         vb.Unbind();  // clear vertex buffer
         ib.Unbind();  // clear index buffer
 
+        Renderer renderer;
+
         float r = 0.0f;
         float increment = 0.05f;
 
@@ -83,16 +87,12 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
             shader.Bind();
-            shader.SetUniform4f("u_Color", 1.0f, 0.3f, 0.5f, 1.0f);
+            shader.SetUniform4f("u_Color", r, 0.3f, 0.5f, 1.0f);
 
-            va.Bind();
-            ib.Bind();
-
-            // draw triangles
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL));
+            renderer.Draw(va, ib, shader);
 
             // little focus to change color
             if (r > 1.0f)

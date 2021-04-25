@@ -46,7 +46,7 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 	return { ss[0].str(), ss[1].str() };
 }
 
-unsigned int CompileShader(unsigned int type, const std::string& source)
+unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 {
 	GLCall(unsigned int id = glCreateShader(type));
 	const char* src = source.c_str();
@@ -110,5 +110,7 @@ int Shader::GetUniformLocation(const std::string& name)
 {
 	// ToDo: Cache LOcation
 	GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
+	if (location == -1)
+		std::cout << "Warning: uniform '" << name << "' doesn't exists!" << std::endl;
 	return location;
 }
