@@ -56,16 +56,11 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
     {
-        float textureSize[] = { 100.0f, 100.0f };
-        float textureMult[] = { 1.0f, 1.0f };
-        float textureOffset[] = { 100.0f, 100.0f };
-
-
         float positions[] = {
-             textureOffset[0],                                    textureOffset[1],                                    0.0f, 0.0f, // 0  first two are Position, next two are texCoord
-             textureOffset[0] + textureSize[0] * textureMult[0],  textureOffset[1],                                    1.0f, 0.0f, // 1
-             textureOffset[0] + textureSize[0] * textureMult[0],  textureOffset[1] + textureSize[1] * textureMult[1],  1.0f, 1.0f, // 2
-             textureOffset[0],                                    textureOffset[1] + textureSize[1] * textureMult[1],  0.0f, 1.0f  // 3
+            -50.0f,  -50.0f,  0.0f, 0.0f, // 0  first two are Position, next two are texCoord
+             50.0f,  -50.0f,  1.0f, 0.0f, // 1
+             50.0f,   50.0f,  1.0f, 1.0f, // 2
+            -50.0f,   50.0f,  0.0f, 1.0f  // 3
         };
 
         unsigned int indices[] = {
@@ -86,18 +81,12 @@ int main(void)
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
-
         // declare index buffer
         IndexBuffer ib(indices, 6);
 
         // 16:9 screen format projection
         glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
-
-
-        // to see in dbg mode what is going on with proj * float positions
-        //glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
-        //glm::vec4 result = proj * vp;
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
         // create and run shader program on gpu
         Shader shader("res/shaders/Basic.shader");
@@ -122,12 +111,6 @@ int main(void)
         io.DisplaySize.x = float(width);
         io.DisplaySize.y = float(height);
 
-        // io.WantCaptureMouse = true;
-        // io.ConfigFlags
-
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
 
@@ -135,19 +118,17 @@ int main(void)
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 130");
 
-        // Our state
-        // bool show_demo_window = false;
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-        // //
-
-        // color pulse
-        float r = 0.0f;
-        float increment = 0.05f;
-
         // logo translation
-        glm::vec3 translation = glm::vec3(200.0f, 200.0f, 0.0f);
+        glm::vec3 translationA = glm::vec3(200.0f, 200.0f, 0.0f);
+        // second logo translation
+        glm::vec3 translationB = glm::vec3(400.0f, 400.0f, 0.0f);
+        
         // logo color
-        ImVec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        ImVec4 colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+        // second logo color
+        ImVec4 colorB = { 1.0f, 0.25f, 0.0f, 1.0f };
+
+        shader.Bind();
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -161,7 +142,6 @@ int main(void)
             // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
             // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
             // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-
             /* Poll for and process events */
             GLCall(glfwPollEvents());
 
@@ -170,57 +150,39 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            shader.Bind();
-            //shader.SetUniform4f("u_Color", r, 0.3f, 0.5f, 1.0f);
-            shader.SetUniform4f("u_Color", color.x, color.y, color.z, color.w);
-
-            // little focus to change color
-            //if (r > 1.0f)
-            //    increment = -0.01f;
-            //else if (r < 0.0f)
-            //    increment = 0.01f;
-
-            //r += increment;
-            //
-
-            // unreal logo texture translation
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mvp = proj * view * model;
-            shader.SetUniformMat4f("u_MVP", mvp);
-
-            // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).            
-            //if (show_demo_window)
-            //    ImGui::ShowDemoWindow(&show_demo_window);
-
-            // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+            // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
             {
-                static float f = 0.0f;
-                static int counter = 0;
-
-                ImGui::Begin("Debug!");                          // Create a window called "Hello, world!" and append into it.
-
-                //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-
-                //ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::Begin("Test");  // Create a window called "Test" and append into it.
                 
-                ImGui::ColorEdit3("Color", (float*)&color); // Edit 3 floats representing a color
-                ImGui::SliderFloat2("Translation", &translation.x, 0.f, 960.f);
-                ImGui::SliderFloat2("Size", (float*)(&textureMult), -5.0f, 5.0f);
+                ImGui::ColorEdit3("ColorA", (float*)&colorA);                      // Edit our shader color
+                ImGui::SliderFloat2("TranslationA", &translationA.x, 0.f, 960.f);  // Set Translation
+                ImGui::ColorEdit3("ColorB", (float*)&colorB);                      // Edit our shader color
+                ImGui::SliderFloat2("TranslationB", &translationB.x, 0.f, 960.f);  // Set Translation
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
 
+            /* Imgui Rendering */
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
-            //glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
             glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            /* Rendering */
-            renderer.Draw(va, ib, shader);
+            /* My Rendering */
+            shader.SetUniform4f("u_Color", (float*)&colorA);                  // set first unreal logo color
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);  // unreal first logo texture translation
+            glm::mat4 mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            renderer.Draw(va, ib, shader);                                    // draw first logo
+
+            shader.SetUniform4f("u_Color", (float*)&colorB);                  // unreal second logo color
+            model = glm::translate(glm::mat4(1.0f), translationB);            // unreal second logo translation
+            mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            renderer.Draw(va, ib, shader);                                    // draw second logo
 
             /* Swap front and back buffers */
             GLCall(glfwSwapBuffers(window));
