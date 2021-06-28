@@ -26,12 +26,12 @@ bool GLLogCall(const char* function, const char* file, int line)
 }
 
 
-void Renderer::Clear() const
+void Renderer::Clear()
 {
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader)
 {
 	shader.Bind();
 	va.Bind();
