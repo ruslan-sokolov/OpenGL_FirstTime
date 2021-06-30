@@ -1,60 +1,64 @@
 #include "TestDrawTexture.h"
-#include "glm/gtc/matrix_transform.hpp"
+
+#include "Texture.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
+#include "IndexBuffer.h"
 #include "Renderer.h"
+
+#include "glm/gtc/matrix_transform.hpp"
+
 #include "imgui/imgui.h"
 
 test::TestDrawTexture::TestDrawTexture(const char* path, unsigned int sizeX, unsigned int sizeY)
-    : shader(defaultShader), texture(path), ib(indicies, 6)
+	: m_Color(1.0f, 1.0f, 1.0f, 1.0f),
+	m_Translation(200.0f, 200.0f, 0.0f),
+	m_Proj(glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f)),
+	m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)))
 {
-    float sizeXHalf = float(sizeX) * 0.5f;
-    float sizeYHalf = float(sizeY) * 0.5f;
+	// vertex array
+	m_VAO = std::make_unique<VertexArray>();
 
-    float positions[] = {  // todo: change to actual texture size
-        -sizeXHalf,  -sizeYHalf,  0.0f, 0.0f, // 0  first two are Position, next two are texCoord
-         sizeXHalf,  -sizeYHalf,  1.0f, 0.0f, // 1
-         sizeXHalf,   sizeYHalf,  1.0f, 1.0f, // 2
-        -sizeXHalf,   sizeYHalf,  0.0f, 1.0f  // 3
-    };
+	// vertex buffer
+	float halfSizeX = float(sizeX / 2);
+	float halfSizeY = float(sizeY / 2);
+	float positions[] = {
+	-halfSizeX,  -halfSizeY,  0.0f, 0.0f, // 0  first two are Position, next two are texCoord
+	 halfSizeX,  -halfSizeY,  1.0f, 0.0f, // 1
+	 halfSizeX,   halfSizeY,  1.0f, 1.0f, // 2
+	-halfSizeX,   halfSizeY,  0.0f, 1.0f  // 3
+	};
+	unsigned int vertexBufferSize = sizeof(positions) / sizeof(float) * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+	m_VertexBuffer = std::make_unique<VertexBuffer>(positions, vertexBufferSize);
 
-    unsigned int indicies[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
+	// vertex array bind to buffer with proper layout
+	VertexBufferLayout layout;
+	layout.Push<float>(2);
+	layout.Push<float>(2);
+	m_VAO->AddBuffer(*m_VertexBuffer, layout);
 
-    for (int i = 0; i < 16; ++i)
-    {
-        m_Positions[i] = positions[i];
-    }
+	// declare index buffer
+	unsigned int indicies[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+	m_IndexBuffer = std::make_unique<IndexBuffer>(indicies, 6);
 
-    // vertex buffer provide triangle points positions as data
-    vb.GenerateBuffer(positions, 4 * 4 * sizeof(float));
+	// create and bind default shader for texture draw (we need to bind it here to set uniform)
+	m_Shader = std::make_unique<Shader>("res/shaders/Basic.shader");
+	m_Shader->Bind();
+	m_Shader->SetUniform4f("u_Color", (float*)&m_Color);
 
-    vb_layout.Push<float>(2);
-    vb_layout.Push<float>(2);
-    va.AddBuffer(vb, vb_layout);
+	// create texture and set shader u_Texture uniform value
+	m_Texture = std::make_unique<Texture>(path);
+	m_Texture->Bind(0);
+	m_Shader->SetUniform1i("u_Texture", 0);  // specify texture location
 
-    // create default shader for texture draw
-    shader.Bind();
-    m_Color = glm::vec4(whiteColor[0], whiteColor[1], whiteColor[2], whiteColor[3]);
-    shader.SetUniform4f("u_Color", (float*)&m_Color);
-
-    texture.Bind(0);
-    shader.SetUniform1i("u_Texture", 0);  // specify texture location
-
-    // 16:9 screen format projection mvp
-    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-    m_Translation = glm::vec3(200.0f, 200.0f, 0.0f);
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
-    glm::mat4 mvp = proj * view * model;
-
-    shader.SetUniformMat4f("u_MVP", mvp);
-
-    va.Unbind();      // clear vertex array buffer 
-    shader.Unbind();  // clear program shader
-    vb.Unbind();      // clear vertex buffer
-    ib.Unbind();      // clear index buffer
+	// 16:9 screen format projection mvp
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
+	m_Shader->SetUniformMat4f("u_MVP", m_Proj * m_View * model);
 }
 
 test::TestDrawTexture::~TestDrawTexture()
@@ -67,18 +71,15 @@ void test::TestDrawTexture::OnUpdate(float deltaTime)
 
 void test::TestDrawTexture::OnRender()
 {
-    Renderer::Draw(va, ib, shader);
+	Renderer::Draw(*m_VAO, *m_IndexBuffer, *m_Shader);
 }
 
 void test::TestDrawTexture::OnImGuiRender()
 {
-    ImGui::ColorEdit4("Texture Color", (float*)&m_Color);
-    shader.SetUniform4f("u_Color", (float*)&m_Color);
+	ImGui::ColorEdit4("Texture Color", (float*)&m_Color);
+	m_Shader->SetUniform4f("u_Color", (float*)&m_Color);
 
-    ImGui::SliderFloat3("Texture Translation", &m_Translation.x, 0.f, 960.f);
-    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
-    glm::mat4 mvp = proj * view * model;
-    shader.SetUniformMat4f("u_MVP", mvp);
+	ImGui::SliderFloat3("Texture Translation", &m_Translation.x, 0.f, 960.f);
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
+	m_Shader->SetUniformMat4f("u_MVP", m_Proj * m_View * model);
 }

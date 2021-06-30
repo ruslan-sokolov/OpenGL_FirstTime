@@ -1,20 +1,18 @@
 #pragma once
 
 #include "Test.h"
-#include "Texture.h"
-#include "Shader.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
 
 #include "glm/glm.hpp"
 
-namespace test {
+#include <memory>
 
-	constexpr const char* defaultShader = "res/shaders/Basic.shader";
-	constexpr float whiteColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	constexpr unsigned int indicies[6] = { 0, 1, 2, 2, 3, 0 };
+class IndexBuffer;
+class VertexBuffer;
+class VertexArray;
+class Shader;
+class Texture;
+
+namespace test {
 
 	class TestDrawTexture : public Test
 	{
@@ -27,17 +25,17 @@ namespace test {
 		void OnImGuiRender() override;
 		
 	private:
-		float m_Positions[16];
-		Shader shader;
-		Texture texture;
+		std::unique_ptr<IndexBuffer> m_IndexBuffer;
+		std::unique_ptr<VertexBuffer> m_VertexBuffer;
+		std::unique_ptr<VertexArray> m_VAO;
 
-		IndexBuffer ib;
-		VertexBufferLayout vb_layout;
-		VertexBuffer vb;
-		VertexArray va;
+		std::unique_ptr<Shader> m_Shader;
+		std::unique_ptr<Texture> m_Texture;
 
-		glm::vec4 m_Color;
+		glm::mat4 m_Proj;
+		glm::mat4 m_View;
 		glm::vec3 m_Translation;
+		glm::vec4 m_Color;
 	};
 }
 
