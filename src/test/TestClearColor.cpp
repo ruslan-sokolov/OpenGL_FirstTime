@@ -5,12 +5,14 @@
 #include "imgui/imgui.h"
 
 test::TestClearColor::TestClearColor()
-	: m_ClearColor {0.2f, 0.3f, 0.8f, 1.0f}
+	: m_ClearColor {0.0f, 0.0f, 0.0f, 1.0f}
 {
 }
 
 test::TestClearColor::~TestClearColor()
 {
+	GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 void test::TestClearColor::OnUpdate(float deltaTime)

@@ -75,8 +75,11 @@ int main(void)
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 130");
 
-        test::TestClearColor test;
-        test::TestDrawTexture test2("res/textures/UE_Logo.png", 200, 200);
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
+        testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+        testMenu->RegisterTest<test::TestDrawTexture>("Draw Texture", "res/textures/UE_Logo.png", 200, 200);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -85,24 +88,24 @@ int main(void)
 
             Renderer::Clear();
 
-            test.OnUpdate(0.0f);
-            test2.OnUpdate(0.0f);
-            test.OnRender();
-            test2.OnRender();
-
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
-            // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+            if (currentTest)
             {
-                ImGui::Begin("Test");  // Create a window called "Test" and append into it.
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
                 
-                test.OnImGuiRender();
-                test2.OnImGuiRender();
-
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                
+                currentTest->OnImGuiRender();
+                
                 ImGui::End();
             }
 
