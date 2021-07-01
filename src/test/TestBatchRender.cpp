@@ -52,7 +52,7 @@ test::TestBatchRender::TestBatchRender(unsigned int posX_1, unsigned int posY_1,
 		4, 5, 6,
 		6, 7, 4
 	};
-	m_IndexBuffer = std::make_unique<IndexBuffer>(indicies, sizeof(positions) / sizeof(unsigned int));
+	m_IndexBuffer = std::make_unique<IndexBuffer>(indicies, sizeof(indicies) / sizeof(unsigned int));
 
 	// create and bind default shader for texture draw (we need to bind it here to set uniform)
 	m_Shader = std::make_unique<Shader>("res/shaders/BasicColor.shader");
