@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "GL/glew.h"
 #include "glm/glm.hpp"
 
 enum class ShaderType
@@ -23,7 +24,7 @@ private:
 	unsigned int m_RendererID;
 	
 	// caching for uniforms
-	std::unordered_map<std::string, int> m_UniformLocationCache;
+	mutable std::unordered_map<std::string, GLint> m_UniformLocationCache;
 
 public:
 	Shader(const std::string& filepath);
@@ -40,7 +41,7 @@ public:
 	void SetUniformMat4f(const std::string& name, const glm::mat4& matrix);
 
 private:
-	int GetUniformLocation(const std::string& name);
+	GLint GetUniformLocation(const std::string& name) const;
 
 	ShaderProgramSource ParseShader(const std::string& filepath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);

@@ -1,4 +1,4 @@
-#include "TestDrawTexture.h"
+#include "TestBatchRender.h"
 
 #include "Texture.h"
 #include "Shader.h"
@@ -12,9 +12,10 @@
 
 #include "imgui/imgui.h"
 
-test::TestDrawTexture::TestDrawTexture(const char* path, unsigned int sizeX, unsigned int sizeY)
+test::TestBatchRender::TestBatchRender(unsigned int posX_1, unsigned int posY_1, unsigned int size_1,
+	                                   unsigned int posX_2, unsigned int posY_2, unsigned int size_2)
 	: m_Color(1.0f, 1.0f, 1.0f, 1.0f),
-	m_Translation(200.0f, 200.0f, 0.0f),
+	m_Translation(0.0f, 0.0f, 0.0f),
 	m_Proj(glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f)),
 	m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)))
 {
@@ -22,59 +23,61 @@ test::TestDrawTexture::TestDrawTexture(const char* path, unsigned int sizeX, uns
 	m_VAO = std::make_unique<VertexArray>();
 
 	// vertex buffer
-	float halfSizeX = float(sizeX / 2);
-	float halfSizeY = float(sizeY / 2);
+	
 	float positions[] = {
-	-halfSizeX,  -halfSizeY,  0.0f, 0.0f, // 0  first two are Position, next two are texCoord
-	 halfSizeX,  -halfSizeY,  1.0f, 0.0f, // 1
-	 halfSizeX,   halfSizeY,  1.0f, 1.0f, // 2
-	-halfSizeX,   halfSizeY,  0.0f, 1.0f  // 3
+		posX_1,          posY_1,
+		posX_1 + size_1, posY_1,
+		posX_1 + size_1, posY_1 + size_1,
+		posX_1,          posY_1 + size_1,
+
+		posX_2,          posY_2,
+		posX_2 + size_2, posY_2,
+		posX_2 + size_2, posY_2 + size_2,
+		posX_2,          posY_2 + size_2
 	};
+
 	unsigned int vertexBufferSize = sizeof(positions) / sizeof(float) * VertexBufferElement::GetSizeOfType(GL_FLOAT);
 	m_VertexBuffer = std::make_unique<VertexBuffer>(positions, vertexBufferSize);
 
-	// vertex array bind to buffer with proper layout
+	// vertex array bind  buffer with proper layout
 	VertexBufferLayout layout;
-	layout.Push<float>(2);
 	layout.Push<float>(2);
 	m_VAO->AddBuffer(*m_VertexBuffer, layout);
 
 	// declare index buffer
 	unsigned int indicies[] = {
 		0, 1, 2,
-		2, 3, 0
+		2, 3, 0,
+
+		4, 5, 6,
+		6, 7, 4
 	};
-	m_IndexBuffer = std::make_unique<IndexBuffer>(indicies, 6);
+	m_IndexBuffer = std::make_unique<IndexBuffer>(indicies, sizeof(positions) / sizeof(unsigned int));
 
 	// create and bind default shader for texture draw (we need to bind it here to set uniform)
-	m_Shader = std::make_unique<Shader>("res/shaders/BasicTexture.shader");
+	m_Shader = std::make_unique<Shader>("res/shaders/BasicColor.shader");
 	m_Shader->Bind();
 	m_Shader->SetUniform4f("u_Color", (float*)&m_Color);
-
-	// create texture and set shader u_Texture uniform value
-	m_Texture = std::make_unique<Texture>(path);
-	m_Texture->Bind(0);
-	m_Shader->SetUniform1i("u_Texture", 0);  // specify texture location
 
 	// 16:9 screen format projection mvp
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
 	m_Shader->SetUniformMat4f("u_MVP", m_Proj * m_View * model);
 }
 
-test::TestDrawTexture::~TestDrawTexture()
+test::TestBatchRender::~TestBatchRender()
 {
 }
 
-void test::TestDrawTexture::OnUpdate(float deltaTime)
+void test::TestBatchRender::OnUpdate(float deltaTime)
 {
 }
 
-void test::TestDrawTexture::OnRender()
+void test::TestBatchRender::OnRender()
 {
 	Renderer::Draw(*m_VAO, *m_IndexBuffer, *m_Shader);
 }
 
-void test::TestDrawTexture::OnImGuiRender()
+void test::TestBatchRender::OnImGuiRender()
 {
 	ImGui::ColorEdit4("Texture Color", (float*)&m_Color);
 	m_Shader->SetUniform4f("u_Color", (float*)&m_Color);
