@@ -14,20 +14,26 @@
 
 #include "imgui/imgui.h"
 
+const glm::vec3 test::TestBatchColor::rotateXYPlane = glm::vec3(0.0f, 0.0f, 1.0f);
+const glm::mat4 test::TestBatchColor::identityMatrix = glm::mat4(1.0f);
+
 test::TestBatchColor::TestBatchColor()
-	: m_Shader(std::make_unique<Shader>("res/shaders/VertexColor.shader"))
+	: m_Shader(std::make_unique<Shader>("res/shaders/VertexColor.shader")),
+	m_Translation(glm::vec3(0.0f, 0.0f, 0.0f)),
+	m_Scale(glm::vec3(100.0f, 100.0f, 1.0f)),
+	m_Rotation(0.0f)
 {
 
 	float vertices[] = {
 		-1.5f, -0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
 		-0.5f, -0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
-		-0.5f, -0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
-		-0.5f, -0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
+		-0.5f,  0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
+		-1.5f,  0.5f,  0.0f,   0.18f, 0.6f, 0.96f, 1.0f,
 
 		 0.5f, -0.5f,  0.0f,   1.0f, 0.93f, 0.24f, 1.0f,
 		 1.5f, -0.5f,  0.0f,   1.0f, 0.93f, 0.24f, 1.0f,
 		 1.5f,  0.5f,  0.0f,   1.0f, 0.93f, 0.24f, 1.0f,
-		 0.5f,  0.5f,  0.0f,   1.0f, 0.93f, 0.24f, 1.0f,
+		 0.5f,  0.5f,  0.0f,   1.0f, 0.93f, 0.24f, 1.0f
 	};
 
 	glGenVertexArrays(1, &m_QuadVA);  // generate vertex array
@@ -55,9 +61,11 @@ test::TestBatchColor::TestBatchColor()
 	// bind shader for vertex color draw (we need to bind it here to set uniform)
 	m_Shader->Bind();
 	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	glm::mat4 view = glm::translate(identityMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	m_Shader->SetUniformMat4f("u_ViewProj", proj * view);
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Translation);
+	glm::mat4 scaleMatrix = glm::scale(identityMatrix, m_Scale);
+	glm::mat4 translationMatrix = glm::translate(identityMatrix, m_Translation);
+	glm::mat4 model = translationMatrix * scaleMatrix;
 	m_Shader->SetUniformMat4f("u_Transform", model);
 }
 
@@ -81,6 +89,14 @@ void test::TestBatchColor::OnRender()
 void test::TestBatchColor::OnImGuiRender()
 {
 	ImGui::SliderFloat3("Translation", &m_Translation.x, 0.f, 960.f);
-	glm::mat4 model = glm::translate(glm::mat4(2323.f), m_Translation);
+	ImGui::SliderFloat3("Scale", &m_Scale.x, 1.0f, 1000.f);
+	ImGui::SliderFloat("Rotate", &m_Rotation, -180.0f, 180.0f);
+	
+	glm::mat4 scaleMatrix = glm::scale(identityMatrix, m_Scale);
+	glm::mat4 translationMatrix = glm::translate(identityMatrix, m_Translation);
+	glm::mat4 rotationMatrix = glm::rotate(identityMatrix, glm::radians(m_Rotation), rotateXYPlane);
+	
+	glm::mat4 model = translationMatrix * rotationMatrix * scaleMatrix;
+	
 	m_Shader->SetUniformMat4f("u_Transform", model);
 }
