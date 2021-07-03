@@ -22,6 +22,7 @@
 #include "test/TestDrawTexture.h"
 #include "test/TestBatchRender.h"
 #include "test/TestBatchColor.h"
+#include "test/TestBatchTexture.h"
 
 #define GLFW_INCLUDE_NONE
 
@@ -84,6 +85,7 @@ int main(void)
         testMenu->RegisterTest<test::TestDrawTexture>("Draw Texture", "res/textures/UE_Logo.png", 200, 200);
         testMenu->RegisterTest<test::TestBatchRender>("Batch Render");
         testMenu->RegisterTest<test::TestBatchColor>("Batch Color");
+        testMenu->RegisterTest<test::TestBatchTexture>("Batch Texture");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
