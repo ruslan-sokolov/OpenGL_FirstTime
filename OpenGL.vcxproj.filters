@@ -84,6 +84,9 @@
     <ClCompile Include="src\test\TestBatchTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\test\TestBatchDynGeometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\BasicTexture.shader" />
@@ -1422,6 +1425,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\test\TestBatchTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\TestBatchDynGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

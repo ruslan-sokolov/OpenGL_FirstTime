@@ -155,6 +155,7 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\test\Test.cpp" />
     <ClCompile Include="src\test\TestBatchColor.cpp" />
+    <ClCompile Include="src\test\TestBatchDynGeometry.cpp" />
     <ClCompile Include="src\test\TestBatchRender.cpp" />
     <ClCompile Include="src\test\TestBatchTexture.cpp" />
     <ClCompile Include="src\test\TestClearColor.cpp" />
@@ -325,6 +326,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\test\Test.h" />
     <ClInclude Include="src\test\TestBatchColor.h" />
+    <ClInclude Include="src\test\TestBatchDynGeometry.h" />
     <ClInclude Include="src\test\TestBatchRender.h" />
     <ClInclude Include="src\test\TestBatchTexture.h" />
     <ClInclude Include="src\test\TestClearColor.h" />

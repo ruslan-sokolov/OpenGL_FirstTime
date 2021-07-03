@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,6 +24,7 @@
 #include "test/TestBatchRender.h"
 #include "test/TestBatchColor.h"
 #include "test/TestBatchTexture.h"
+#include "test/TestBatchDynGeometry.h"
 
 #define GLFW_INCLUDE_NONE
 
@@ -78,6 +80,11 @@ int main(void)
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 130");
 
+        auto t_start = std::chrono::high_resolution_clock::now();
+        auto t_prev = t_start;
+        auto t_next = t_start;
+        float time_delta;
+
         test::Test* currentTest = nullptr;
         test::TestMenu* testMenu = new test::TestMenu(currentTest);
         currentTest = testMenu;
@@ -86,10 +93,15 @@ int main(void)
         testMenu->RegisterTest<test::TestBatchRender>("Batch Render");
         testMenu->RegisterTest<test::TestBatchColor>("Batch Color");
         testMenu->RegisterTest<test::TestBatchTexture>("Batch Texture");
+        testMenu->RegisterTest<test::TestBatchDynGeometry>("Batch Dyn Geometry");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            t_prev = t_next;
+            t_next = std::chrono::high_resolution_clock::now();
+            time_delta = std::chrono::duration<float, std::milli>(t_next - t_prev).count();
+
             /* Render here */
 
             Renderer::Clear();
@@ -100,7 +112,7 @@ int main(void)
             ImGui::NewFrame();
             if (currentTest)
             {
-                currentTest->OnUpdate(0.0f);
+                currentTest->OnUpdate(time_delta);
                 currentTest->OnRender();
                 ImGui::Begin("Test");
                 
