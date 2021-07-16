@@ -25,13 +25,12 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 	std::stringstream ss[2];
 	ShaderType type = ShaderType::NONE;
 
-	std::ifstream stream;
+	std::ifstream stream(filepath);
 	stream.exceptions(std::ifstream::badbit | std::ifstream::failbit & std::ifstream::eofbit);
 	try
 	{
 		while (getline(stream, line))
 		{
-			std::cout << "#" << line << std::endl;
 			if (line.find("#shader") != std::string::npos)
 			{
 				if (line.find("vertex") != std::string::npos)
