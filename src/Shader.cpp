@@ -26,10 +26,9 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 	ShaderType type = ShaderType::NONE;
 
 	std::ifstream stream;
-	stream.exceptions(std::ifstream::badbit);
+	stream.exceptions(std::ifstream::badbit | std::ifstream::failbit & std::ifstream::eofbit);
 	try
 	{
-		stream.open(filepath);
 		while (getline(stream, line))
 		{
 			std::cout << "#" << line << std::endl;
@@ -45,7 +44,6 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 				ss[(unsigned int)type] << line << '\n';
 			}
 		}
-		stream.close();
 		return { ss[0].str(), ss[1].str() };
 	}
 	catch (std::ifstream::failure e)
