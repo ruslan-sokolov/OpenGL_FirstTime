@@ -7,7 +7,6 @@
 #include <sstream>
 #include <iostream>
 
-
 Shader::Shader(const std::string& filepath)
 	: m_FilePath(filepath), m_RendererID(0)
 {
@@ -22,28 +21,38 @@ Shader::~Shader()
 
 ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 {
-	std::ifstream stream(filepath);
-
 	std::string line;
 	std::stringstream ss[2];
 	ShaderType type = ShaderType::NONE;
 
-	while (getline(stream, line))
+	std::ifstream stream;
+	stream.exceptions(std::ifstream::badbit);
+	try
 	{
-		if (line.find("#shader") != std::string::npos)
+		stream.open(filepath);
+		while (getline(stream, line))
 		{
-			if (line.find("vertex") != std::string::npos)
-				type = ShaderType::VERTEX;
-			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT;
+			std::cout << "#" << line << std::endl;
+			if (line.find("#shader") != std::string::npos)
+			{
+				if (line.find("vertex") != std::string::npos)
+					type = ShaderType::VERTEX;
+				else if (line.find("fragment") != std::string::npos)
+					type = ShaderType::FRAGMENT;
+			}
+			else
+			{
+				ss[(unsigned int)type] << line << '\n';
+			}
 		}
-		else
-		{
-			ss[(unsigned int)type] << line << '\n';
-		}
+		stream.close();
+		return { ss[0].str(), ss[1].str() };
 	}
-
-	return { ss[0].str(), ss[1].str() };
+	catch (std::ifstream::failure e)
+	{
+		std::cout << "failed to load shader " << filepath << " exception open/read/close file" << std::endl;
+		return { ss[0].str(), ss[1].str() };
+	}
 }
 
 unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
