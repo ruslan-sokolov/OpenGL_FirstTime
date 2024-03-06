@@ -5,3 +5,5 @@ This project contain all necessary libs and sources to make possible to demonstr
 Project has class Test with different Test instances and Imgui that allow as to see what different tests can do at runtime by clicking on needed test with mouse.
 
 Main goal for this project was learning how to create simple 2d render for porting my 2D-tank-game from STL "engine" implementation to one that will be writing by me.
+
+build with x86 configuration, x64 libraries and dependencies paths not specified
